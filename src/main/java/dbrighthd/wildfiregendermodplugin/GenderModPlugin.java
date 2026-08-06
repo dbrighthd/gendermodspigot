@@ -1,6 +1,8 @@
 package dbrighthd.wildfiregendermodplugin;
 
+import dbrighthd.wildfiregendermodplugin.commands.DiagnosticCommand;
 import dbrighthd.wildfiregendermodplugin.listeners.ConnectionListener;
+import dbrighthd.wildfiregendermodplugin.listeners.HelloPacketListener;
 import dbrighthd.wildfiregendermodplugin.listeners.ModPayloadListener;
 import dbrighthd.wildfiregendermodplugin.logging.CustomPluginLogger;
 import dbrighthd.wildfiregendermodplugin.networking.NetworkManager;
@@ -14,23 +16,34 @@ import org.bukkit.plugin.java.JavaPlugin;
  * @author dbrighthd
  */
 public final class GenderModPlugin extends JavaPlugin {
-    private final CustomPluginLogger customLogger = new CustomPluginLogger(this);
+    private CustomPluginLogger customLogger;
     private final UserManager userManager = new UserManager();
     private final NetworkManager networkManager = new NetworkManager(this);
 
     @Override
     public void onEnable() {
-        customLogger.info("By @dbrighthd, with contributions from @stigstille and @winnpixie");
-
         saveDefaultConfig();
+        customLogger = new CustomPluginLogger(this);
+
+        customLogger.info("By @dbrighthd, with contributions from @stigstille and @winnpixie");
 
         if (!networkManager.init()) {
             customLogger.severe("INVALID PROTOCOL, DISABLING SELF.");
             getServer().getPluginManager().disablePlugin(this);
+            return;
         }
 
         registerEventListeners();
         registerModListeners();
+
+        DiagnosticCommand diagCmd = new DiagnosticCommand(this);
+        var cmd = getCommand("femalegender");
+        if (cmd != null) {
+            cmd.setExecutor(diagCmd);
+            cmd.setTabCompleter(diagCmd);
+        } else {
+            customLogger.warning("Could not register /femalegender command - check plugin.yml");
+        }
     }
 
     @Override
@@ -65,5 +78,10 @@ public final class GenderModPlugin extends JavaPlugin {
         // Forge
         getServer().getMessenger().registerIncomingPluginChannel(this, ModConstants.FORGE, payloadListener);
         getServer().getMessenger().registerOutgoingPluginChannel(this, ModConstants.FORGE);
+
+        // Hello handshake (5.0.0+)
+        HelloPacketListener helloListener = new HelloPacketListener(this);
+        getServer().getMessenger().registerIncomingPluginChannel(this, ModConstants.HELLO_SERVERBOUND, helloListener);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, ModConstants.HELLO_CLIENTBOUND);
     }
 }

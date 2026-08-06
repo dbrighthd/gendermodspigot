@@ -44,6 +44,12 @@ public class CraftInputStream extends DataInputStream {
         while (true) {
             currentByte = super.readByte();
 
+            // An int has only four usable bits left in its fifth VarInt byte.
+            // Reject overflow bits instead of silently truncating them during
+            // the left shift.
+            if (position == 28 && (currentByte & 0xF0) != 0)
+                throw new IOException("VarInt is too big");
+
             value |= (currentByte & CraftDataConstants.SEGMENT_BITS) << position;
 
             if ((currentByte & CraftDataConstants.CONTINUE_BIT) == 0) break;
@@ -70,6 +76,11 @@ public class CraftInputStream extends DataInputStream {
 
         while (true) {
             currentByte = super.readByte();
+
+            // A long has only one usable bit left in its tenth VarLong byte.
+            if (position == 63 && (currentByte & 0xFE) != 0)
+                throw new IOException("VarLong is too big");
+
             value |= (long) (currentByte & CraftDataConstants.SEGMENT_BITS) << position;
 
             if ((currentByte & CraftDataConstants.CONTINUE_BIT) == 0) break;
@@ -102,6 +113,11 @@ public class CraftInputStream extends DataInputStream {
      *                     another I/O error occurs.
      */
     public <T extends Enum<T>> T readEnum(Class<T> enumClass) throws IOException {
-        return enumClass.getEnumConstants()[readVarInt()];
+        T[] constants = enumClass.getEnumConstants();
+        int ordinal = readVarInt();
+        if (ordinal < 0 || ordinal >= constants.length)
+            throw new IOException("Enum ordinal " + ordinal + " out of range for " + enumClass.getSimpleName()
+                    + " (max " + (constants.length - 1) + ")");
+        return constants[ordinal];
     }
 }

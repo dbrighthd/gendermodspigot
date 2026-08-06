@@ -1,5 +1,12 @@
 name: Female-Gender-Mod-Plugin
-version: '${project.version}'
+version: "${project.version}"
 main: dbrighthd.wildfiregendermodplugin.GenderModPlugin
-api-version: '1.21'
-authors: [ 'dbrighthd', 'Stigstille', 'winnpixie' ]
+api-version: "1.20"
+authors: ["dbrighthd", "Stigstille", "winnpixie"]
+
+commands:
+  femalegender:
+    description: Diagnostic commands for Female Gender Mod
+    aliases: [fgm]
+    permission: wildfire.admin
+    usage: /femalegender <status|testsend> [player]

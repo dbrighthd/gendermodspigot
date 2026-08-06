@@ -21,10 +21,12 @@ public class ModPayloadListener implements PluginMessageListener {
 
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte[] message) {
-        if (!channel.equals(ModConstants.SEND_GENDER_INFO) && !channel.equals(ModConstants.FORGE)) return;
+        if (!channel.equals(ModConstants.SEND_GENDER_INFO) && !channel.equals(ModConstants.FORGE))
+            return;
 
-        ModUser user = plugin.getNetworkManager().deserializeUser(message, channel.equals(ModConstants.FORGE));
-        if (user == null) return;
+        ModUser user = plugin.getNetworkManager().deserializeUser(message, channel.equals(ModConstants.FORGE), player);
+        if (user == null)
+            return;
 
         if (!player.getUniqueId().equals(user.userId())) {
             plugin.getCustomLogger().warning("Unauthorized access attempt by %s for %s",
@@ -38,7 +40,14 @@ public class ModPayloadListener implements PluginMessageListener {
         plugin.getCustomLogger().debug("Stored %s as %s",
                 player.getName(), user.configuration().generalOptions().genderIdentity().name());
 
-        // Sync mod configurations for ALL online players.
+        // Mark this player ready to receive sync packets now that their protocol
+        // is confirmed. For V4/older clients this is the first confirmation;
+        // for V5 clients this is a no-op (already marked ready by HelloPacketListener).
+        plugin.getUserManager().setProtocolReady(player.getUniqueId());
+
+        // Sync all stored users (including this player's just-updated data) to
+        // every ready online player. This also provides the sender's deferred
+        // initial sync without sending the same full dump to them twice.
         plugin.getNetworkManager().sync(plugin.getServer().getOnlinePlayers());
     }
 }

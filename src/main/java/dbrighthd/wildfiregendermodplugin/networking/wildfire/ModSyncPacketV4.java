@@ -19,7 +19,7 @@ public class ModSyncPacketV4 implements ModSyncPacket {
 
     @Override
     public String getModRange() {
-        return "4.0.1 - 4.3.4";
+        return "4.0.0 - 4.3.4";
     }
 
     @Override
@@ -47,7 +47,7 @@ public class ModSyncPacketV4 implements ModSyncPacket {
                 generalBuilder.create(),
                 physicsBuilder.create(),
                 breastBuilder.create(),
-                null));
+                UVLayouts.defaultLayouts()));
     }
 
     @Override

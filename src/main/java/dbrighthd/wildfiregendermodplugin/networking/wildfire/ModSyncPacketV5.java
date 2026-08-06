@@ -48,8 +48,16 @@ public class ModSyncPacketV5 implements ModSyncPacket {
         breastBuilder.setUniBoob(input.readBoolean());
         breastBuilder.setCleavage(input.readFloat());
 
-        // UV Layouts
-        UVLayouts uvLayouts = readUVLayouts(input);
+        byte[] tailData = input.readAllBytes();
+        UVLayouts uvLayouts = UVLayouts.defaultLayouts(); // We still populate default for configuration needs initially
+        if (tailData.length > 0) {
+            try (CraftInputStream probe = CraftInputStream.ofBytes(tailData)) {
+                uvLayouts = readUVLayouts(probe);
+            } catch (IOException ignored) {
+                // Fallback to defaults if parsing fails or reaches EOF
+                uvLayouts = UVLayouts.defaultLayouts();
+            }
+        }
 
         return new ModUser(userId, new ModConfiguration(
                 generalBuilder.create(),
@@ -103,15 +111,22 @@ public class ModSyncPacketV5 implements ModSyncPacket {
 
     private UVLayout readUVLayout(CraftInputStream input) throws IOException {
         int count = input.readVarInt();
+        if (count < 0 || count > UVDirection.values().length) {
+            // There are only UVDirection.values().length valid directions, so any
+            // larger count is corrupt/truncated data — treat it as such rather than
+            // looping on it.
+            throw new IOException("Invalid UV layout quad count: " + count);
+        }
         Map<UVDirection, UVQuad> quads = new EnumMap<>(UVDirection.class);
         for (int i = 0; i < count; i++) {
-            UVDirection direction = UVDirection.byId(input.readVarInt());
+            UVDirection direction = input.readEnum(UVDirection.class);
             UVQuad quad = new UVQuad(
                     input.readVarInt(),
                     input.readVarInt(),
                     input.readVarInt(),
                     input.readVarInt());
-            quads.put(direction, quad);
+            if (quads.put(direction, quad) != null)
+                throw new IOException("Duplicate UV direction: " + direction);
         }
         return new UVLayout(quads);
     }

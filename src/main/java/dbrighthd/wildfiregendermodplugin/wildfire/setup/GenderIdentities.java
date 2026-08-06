@@ -7,11 +7,13 @@ package dbrighthd.wildfiregendermodplugin.wildfire.setup;
  */
 public enum GenderIdentities {
     /**
-     * Indicates this user has what may be considered characteristics of a human female (i.e. prominent breasts)
+     * Indicates this user has what may be considered characteristics of a human
+     * female (i.e. prominent breasts)
      */
     FEMALE,
     /**
-     * Indicates this user has what may be considered characteristics of a human male (i.e. a flat chest)
+     * Indicates this user has what may be considered characteristics of a human
+     * male (i.e. a flat chest)
      */
     MALE,
     /**

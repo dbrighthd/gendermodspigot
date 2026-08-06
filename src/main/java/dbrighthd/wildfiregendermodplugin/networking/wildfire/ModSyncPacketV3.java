@@ -46,8 +46,7 @@ public class ModSyncPacketV3 implements ModSyncPacket {
                 generalBuilder.create(),
                 physicsBuilder.create(),
                 breastBuilder.create(),
-                null
-        ));
+                UVLayouts.defaultLayouts()));
     }
 
     @Override

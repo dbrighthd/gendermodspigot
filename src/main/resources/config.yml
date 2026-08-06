@@ -1,5 +1,5 @@
 # Configuration version -- DO NOT CHANGE!
-config-version: 0.2
+config-version: 0.3
 
 # Configuration relating to Wildfire's Female Gender Mod
 mod:
@@ -15,3 +15,5 @@ logging:
   enabled: true
   # Toggle the inclusion of "debug" messages with logging.
   debug: false
+  # Enable raw packet data dumps (hex strings)
+  verbose: false
